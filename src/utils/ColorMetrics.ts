@@ -1,5 +1,5 @@
+import { ColorData, Tuple } from '@/types'
 import { Family } from './words.ts'
-import { Tuple } from '@/types'
 
 export class ColorMetrics {
   static getTemperature(hsl: { h: number; s: number; l: number }): string {
@@ -135,7 +135,6 @@ export class ColorMetrics {
   }
 
   static getColorFamily({ h, s = 1, l = 0.5 }: { h: number; s: number; l: number }): Family {
-    // Нормализация hue
     h = (h % 360 + 360) % 360
 
     // 1. Быстрый фильтр achromatic
@@ -224,6 +223,67 @@ export class ColorMetrics {
     if (baseFamily === 'violet') return 'purple'
 
     return baseFamily
+  }
+
+  static fixFamily(color: ColorData): string {
+    const { hsl, family: originalFamily } = color
+    const { h: hue, s: saturation, l: lightness } = hsl
+
+    // Если family уже корректное - оставляем
+    if (originalFamily && !['lime', 'unknown', 'null'].includes(originalFamily.toLowerCase())) {
+      return originalFamily
+    }
+
+    const isGray = saturation < 8
+    const isLowSaturation = saturation < 20
+    const isMediumSaturation = saturation < 40
+    const isHighSaturation = saturation >= 60
+    const isLowLightness = lightness < 40
+    const isMediumLightness = lightness < 65
+    const isHighLightness = lightness >= 80
+    const isDark = lightness < 30
+    const isPastel = isMediumSaturation && isHighLightness
+    const isMuted = isLowSaturation || (isMediumSaturation && isMediumLightness)
+    const isVivid = isHighSaturation && !isLowLightness
+
+    // Hue-based классификация (0-360°)
+    if (isGray) return 'gray'
+
+    if (hue >= 0 && hue < 15) return isVivid ? 'red' : 'coral'
+    if (hue >= 15 && hue < 30) return isMuted ? 'brown' : 'red'
+
+    if (hue >= 30 && hue < 45) return isMuted ? 'brown' : 'yellow'
+    if (hue >= 45 && hue < 60) return isMuted ? 'olive' : 'yellow'
+
+    if (hue >= 60 && hue < 90) return isPastel ? 'mint' : 'lime'
+    if (hue >= 90 && hue < 135) return isPastel ? 'sage' : 'green'
+
+    if (hue >= 135 && hue < 165) return isPastel ? 'teal' : 'teal'
+    if (hue >= 165 && hue < 195) return isPastel ? 'aqua' : 'cyan'
+
+    if (hue >= 195 && hue < 225) return isPastel ? 'sky' : 'blue'
+    if (hue >= 225 && hue < 255) return isPastel ? 'lavender' : 'metallic'
+
+    if (hue >= 255 && hue < 285) return isPastel ? 'lilac' : 'purple'
+    if (hue >= 285 && hue < 315) return isPastel ? 'pink' : 'magenta'
+    if (hue >= 315 && hue < 360) return isPastel ? 'peach' : 'orange'
+
+    // Fallback - все переменные используются
+    if (isDark) return 'charcoal'
+    if (isPastel) return 'pastel'
+    if (isMuted) return 'neutral'
+    if (isVivid) return 'vivid'
+    if (isHighSaturation) return 'metallic'
+    if (isLowLightness) return 'dark'
+
+    return 'neutral'
+  }
+
+  static fixFamilies(colors: ColorData[]): ColorData[] {
+    return colors.map(color => ({
+      ...color,
+      family: ColorMetrics.fixFamily(color)
+    }))
   }
 
   private static hslToHex({ h, s, l }: { h: number; s: number; l: number }): string {

@@ -90,6 +90,16 @@ export interface CapitalizeResult {
   data: ColorData[];
 }
 
+export interface CapitalizeResultExtended extends CapitalizeResult {
+  transformStats?: {
+    dashTransformed: number
+    camelTransformed: number
+    spaceNormalized: number
+    unchanged: number
+    totalOperations: number
+  }
+}
+
 export interface CopyStats {
   total: number
   copied: number

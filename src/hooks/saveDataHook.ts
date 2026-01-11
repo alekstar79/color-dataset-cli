@@ -1,4 +1,4 @@
-import { HookHandler, CommandContext } from '@/types'
+import { CommandContext, HookHandler } from '@/types'
 import { Application } from '@/core/Application'
 
 export const saveDataHook: HookHandler = async (

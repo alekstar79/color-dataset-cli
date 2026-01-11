@@ -1,5 +1,7 @@
 import type { ColorData, ParseResult } from '@/types'
 
+import { ColorMetrics } from '@/utils/ColorMetrics'
+
 import { ASTDetector } from './ASTDetector'
 import { ASTParser } from './ASTParser'
 
@@ -21,9 +23,14 @@ export class Parser {
     const colors = this.parser.parse(data, bestFormat.type) as ColorData[]
     const parsingMs = performance.now() - startParse
 
+    const colorsWithFixedFamily = ColorMetrics.fixFamilies(colors)
+    // const fixedCount = colorsWithFixedFamily.filter(c => {
+    //   return c.family !== colors.find(col => col.hex === c.hex)?.family
+    // }).length
+
     return {
       format: bestFormat.type,
-      colors,
+      colors: colorsWithFixedFamily,
       confidence: bestFormat.confidence,
       metadata: bestFormat.metadata,
       performance: {

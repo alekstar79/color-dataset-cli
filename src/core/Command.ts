@@ -1,5 +1,3 @@
-// noinspection JSUnusedGlobalSymbols
-
 import { CommandContext, CommandAction, CommandConfig } from '@/types'
 import { Logger } from '../utils/Logger.ts'
 

@@ -1,11 +1,13 @@
-import { CommandContext, DatasetAPI, HookHandler, MiddlewareHandler, ParsedArgs } from '@/types'
+import { ColorData, CommandContext, DatasetAPI, HookHandler, MiddlewareHandler, ParsedArgs } from '@/types'
 
-import { parseArgs } from './parser'
+import { ColorMetrics } from '../utils/ColorMetrics'
 import { PipeHandler } from '../utils/PipeHandler'
 import { Command } from './Command'
 
 import { Logger } from '../utils/Logger'
 import { Tracer } from '../utils/Tracer'
+
+import { parseArgs } from './parser'
 
 export class Application {
   name: string
@@ -44,6 +46,22 @@ export class Application {
     this.tracer = new Tracer()
 
     this.registerBuiltins()
+
+    this.hook('postParse', async (context: any, app: Application) => {
+      if (context.parsedDatasets) {
+        let totalFixed = 0
+
+        for (const [key, colors] of Object.entries(context.parsedDatasets)) {
+          const fixedColors = ColorMetrics.fixFamilies(colors as ColorData[])
+          totalFixed += fixedColors.length - (colors as ColorData[]).length
+          context.parsedDatasets[key] = fixedColors
+        }
+
+        if (totalFixed > 0) {
+          app.logger.debug(`🎨 Auto-fixed ${totalFixed} color families`)
+        }
+      }
+    })
   }
 
   private registerBuiltins(): void {
