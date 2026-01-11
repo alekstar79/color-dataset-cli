@@ -157,7 +157,7 @@ export class PriorityMergeCommand extends Command {
 
     // XYZ → Lab
     const x_ = x / 0.95047
-    const y_ = y / 1.0
+    const y_ = y
     const z_ = z / 1.08883
 
     const fx = x_ > 0.008856 ? Math.pow(x_, 1 / 3) : (x_ * 903.3 + 16) / 116
