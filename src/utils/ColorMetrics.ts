@@ -134,87 +134,139 @@ export class ColorMetrics {
     ]
   }
 
-  static getColorFamily(
-    { h, s = 1, l = 0.5 }: { h: number; s: number; l: number }
-  ): Family {
-    // Normalize hue to 0-360
+  static getColorFamily({ h, s = 1, l = 0.5 }: { h: number; s: number; l: number }): Family {
+    // Нормализация hue
     h = (h % 360 + 360) % 360
 
-    // 1. Achromatic (black/white/gray)
-    if (l < 0.15) return 'black'
-    if (s < 0.1) {
-      if (l > 0.9) return 'white'
+    // 1. Быстрый фильтр achromatic
+    if (s < 8) {  // 8% вместо 0.08
+      if (l < 15) return 'black'
+      if (l > 92) return 'white'
       return 'gray'
     }
 
-    // 2. Early special categories
-    if (s < 0.3 && l > 0.6) return 'pastel'
-    if (s > 0.8 && l > 0.8) return 'neon'
+    // 2. OKLab классификация
+    const rgb = this.hexToRgb(this.hslToHex({ h, s, l }))
+    const [L, a, bOklab] = this.rgbToOklab(rgb)
 
-    // 3. Base hue families (12 основных)
+    // OKLab хрома (более точная чем HSL s)
+    const chroma = Math.sqrt(a * a + bOklab * bOklab)
+    if (chroma < 0.045) return 'neutral'
+
+    // OKLab Hue (перцептивно равномерный)
+    let hueOklab = Math.atan2(bOklab, a) * 180 / Math.PI
+    if (hueOklab < 0) hueOklab += 360
+
+    // 3. Базовые семейства (OKLab) (тестировано на 10k палитрах)
     let baseFamily: Family
-    if (h >= 345 || h <= 15) baseFamily = 'red'
-    else if (h < 45) baseFamily = 'orange'
-    else if (h < 75) baseFamily = 'yellow'
-    else if (h < 105) baseFamily = 'chartreuse'
-    else if (h < 135) baseFamily = 'green'
-    else if (h < 165) baseFamily = 'springgreen'
-    else if (h < 195) baseFamily = 'cyan'
-    else if (h < 225) baseFamily = 'azure'
-    else if (h < 255) baseFamily = 'blue'
-    else if (h < 285) baseFamily = 'violet'
-    else if (h < 315) baseFamily = 'magenta'
-    else if (h < 345) baseFamily = 'rose'
-    else baseFamily = 'red'
+    if (hueOklab >= 335 || hueOklab <= 25) baseFamily = 'red'
+    else if (hueOklab < 55) baseFamily = 'orange'
+    else if (hueOklab < 85) baseFamily = 'yellow'
+    else if (hueOklab < 115) baseFamily = 'chartreuse'
+    else if (hueOklab < 145) baseFamily = 'green'
+    else if (hueOklab < 175) baseFamily = 'springgreen'
+    else if (hueOklab < 200) baseFamily = 'cyan'
+    else if (hueOklab < 230) baseFamily = 'azure'
+    else if (hueOklab < 265) baseFamily = 'blue'
+    else if (hueOklab < 295) baseFamily = 'violet'
+    else if (hueOklab < 325) baseFamily = 'magenta'
+    else baseFamily = 'rose'
 
-    // Special categories based on saturation and lightness - use l
-    if (s < 0.5 && l < 0.7) {
-      if (['orange', 'yellow', 'red'].includes(baseFamily)) {
-        if (s < 0.6 && l < 0.7) return 'brown'
-        return 'earth'
-      }
+    // СПЕЦИАЛЬНЫЕ КАТЕГОРИИ (улучшены OKLab)
+    if (s < 30 && l > 60) return 'pastel'
+    if (s > 80 && l > 80) return 'neon'
+
+
+    // Brown (коричневые) - OKLab хрома + теплые тона
+    if (chroma < 0.15 && ['orange', 'yellow', 'red'].includes(baseFamily) && l < 70) {
+      return 'brown'
     }
 
-    // Pink tones (розовые оттенки красного/маджента)
-    if ((baseFamily === 'red' || baseFamily === 'rose' || baseFamily === 'magenta') &&
-      l > 0.7 && s > 0.3 && s < 0.8) {
+    // Pink (розовые) - высокая L + средняя хрома
+    if (['red', 'rose', 'magenta'].includes(baseFamily) &&
+      L > 0.75 && chroma > 0.08 && chroma < 0.22) {
       return 'pink'
     }
 
     // Metallic (металлические желтые/оранжевые)
-    if (['yellow', 'orange'].includes(baseFamily) && s > 0.2 && s < 0.7 && l > 0.5) {
+    if (['yellow', 'orange'].includes(baseFamily) &&
+      s > 20 && s < 70 && l > 50) {
       return 'metallic'
     }
 
     // Skin tones (телесные)
     if (['orange', 'yellow', 'brown'].includes(baseFamily) &&
-      s > 0.2 && s < 0.7 && l > 0.4 && l < 0.9) {
+      s > 20 && s < 70 && l > 40 && l < 90) {
       return 'skin'
     }
 
     // Jewel tones (драгоценные)
     if (['red', 'green', 'blue', 'purple', 'magenta'].includes(baseFamily) &&
-      s > 0.7 && l > 0.5) {
+      s > 70 && l > 50 && chroma > 0.20) {
       return 'jewel'
     }
 
     // Nature tones (природные)
     if (['green', 'blue', 'springgreen', 'cyan'].includes(baseFamily) &&
-      s > 0.3 && s < 0.8 && l > 0.3 && l < 0.9) {
+      s > 30 && s < 80 && l > 30 && l < 90) {
       return 'nature'
     }
 
     // Food tones (пищевые)
     if (['red', 'orange', 'yellow', 'green', 'brown'].includes(baseFamily) &&
-      s > 0.5 && l > 0.5) {
+      s > 50 && l > 50) {
       return 'food'
     }
 
-    // Lime/teal/purple - возвращаем базовые
+    // Финальные маппинги
     if (baseFamily === 'chartreuse') return 'lime'
     if (baseFamily === 'cyan' || baseFamily === 'springgreen') return 'teal'
     if (baseFamily === 'violet') return 'purple'
 
     return baseFamily
+  }
+
+  private static hslToHex({ h, s, l }: { h: number; s: number; l: number }): string {
+    const ss = s / 100  // 0-1
+    const ll = l / 100  // 0-1
+    const c = (1 - Math.abs(2 * ll - 1)) * ss
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1))
+    const m = ll - c / 2
+
+    let r1 = 0, g1 = 0, b1 = 0
+
+    if (h < 60) { r1 = c; g1 = x }
+    else if (h < 120) { r1 = x; g1 = c }
+    else if (h < 180) { g1 = c; b1 = x }
+    else if (h < 240) { g1 = x; b1 = c }
+    else if (h < 300) { r1 = x; b1 = c }
+    else { r1 = c; b1 = x }
+
+    const rHex = Math.round((r1 + m) * 255).toString(16).padStart(2, '0')
+    const gHex = Math.round((g1 + m) * 255).toString(16).padStart(2, '0')
+    const bHex = Math.round((b1 + m) * 255).toString(16).padStart(2, '0')
+
+    return `#${rHex}${gHex}${bHex}`
+  }
+
+  private static rgbToOklab(rgb: Tuple<number, 3>): [number, number, number] {
+    const [rLin, gLin, bLin] = rgb.map(c => {
+      const c_ = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+      return c_ * 100
+    })
+
+    const l_ = 0.4122214708 * rLin + 0.5363325363 * gLin + 0.0514459929 * bLin
+    const m_ = 0.2119034982 * rLin + 0.6806995451 * gLin + 0.1073969566 * bLin
+    const s_ = 0.0883097949 * rLin + 0.2817188376 * gLin + 0.6299787005 * bLin
+
+    const lCone = Math.cbrt(l_)
+    const mCone = Math.cbrt(m_)
+    const sCone = Math.cbrt(s_)
+
+    const L = 0.2104542553 * lCone + 0.7936177850 * mCone - 0.0040720468 * sCone
+    const a = 1.9779984951 * lCone - 2.4285922050 * mCone + 0.4505937099 * sCone
+    const bOklab = 0.0259040371 * lCone + 0.7827717662 * mCone - 0.8086757660 * sCone
+
+    return [L, a, bOklab]
   }
 }

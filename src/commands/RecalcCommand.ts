@@ -26,6 +26,7 @@ export class RecalcCommand extends Command {
     this.option('-o, --output <path>', 'Сохранить результат')
       .option('--format <format>', 'Формат (json|ts)', 'ts')
       .option('--denormalize, -d', 'Денормализовать (normalize -d)')
+      .option('--family, -f', 'Принудительное переопределение семейства')
       .validate(({ args }) => !args[0]
         ? '❌ Укажите путь к датасету: recalc <dataset> <output>'
         : true
@@ -45,8 +46,9 @@ export class RecalcCommand extends Command {
 
     const colors = datasets[args[0]]
     const useDenormalize = options.denormalize || options.d
+    const forceFamily = options.family || options.f
 
-    const result = this.recalculateFromHex(colors, logger)
+    const result = this.recalculateFromHex(colors, forceFamily, logger)
     logger.success('✅ Пересчёт завершён')
     this.printStats(result.stats, logger)
 
@@ -71,33 +73,31 @@ export class RecalcCommand extends Command {
     return { stats: result.stats, data: finalData }
   }
 
-  recalculateFromHex(data: ColorData[], _logger: any): { stats: RecalcStats; data: ColorData[] } {
+  recalculateFromHex(
+    data: ColorData[],
+    forceFamily: boolean,
+    _logger: any
+  ): { stats: RecalcStats; data: ColorData[] } {
     const progress = new ProgressBar({ total: data.length, width: 40 })
     const stats: RecalcStats = { total: data.length, recalculated: { rgb: 0, hsl: 0, hueRange: 0 }, errors: 0 }
 
-    // let i = 0
     const processed = data.map(color => {
       try {
         const rgb = ColorMetrics.hexToRgb(color.hex)
         const metrics = ColorMetrics.hexToHslMetrics(color.hex)
         const hsl = {
-          h: metrics.h / 360,
-          s: metrics.s / 100,
-          l: metrics.l / 100
+          h: metrics.h,
+          s: metrics.s,
+          l: metrics.l
         }
 
-        // // TODO
-        // if (i < 5) {
-        //   console.log('recalculateFromHex', {
-        //     metricsHSL: { h: metrics.h, s: metrics.s, l: metrics.l }
-        //   }, hsl)
-        // }
-        //
-        // i++
+        const family = forceFamily
+          ? ColorMetrics.getColorFamily(hsl)
+          : color.family ?? ColorMetrics.getColorFamily(hsl)
 
         const processed: ColorData = {
           ...color,
-          family: color.family ?? ColorMetrics.getColorFamily(hsl),
+          family,
           hueRange: metrics.hueRange,
           hsl,
           rgb
