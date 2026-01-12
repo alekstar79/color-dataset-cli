@@ -8,7 +8,6 @@
 
 # production
 /build
-/sets
 .DS_Store
 
 # local env files

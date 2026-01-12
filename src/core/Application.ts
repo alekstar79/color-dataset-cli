@@ -7,7 +7,7 @@ import { Command } from './Command'
 import { Logger } from '../utils/Logger'
 import { Tracer } from '../utils/Tracer'
 
-import { parseArgs } from './parser'
+import { parseArgs } from './parseArgs.ts'
 
 export class Application {
   name: string
