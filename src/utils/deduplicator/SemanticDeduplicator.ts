@@ -25,7 +25,7 @@ export class SemanticDeduplicator {
     const hexGroups = new Map<string, ColorData[]>()
     const nameGroups = new Map<string, ColorData[]>()
 
-    // ШАГ 1: Группировка по HEX (приоритет 1)
+    // STEP 1: HEX Grouping (priority 1)
     let groupCount = 0
     for (const color of colors) {
       const hex = color.hex.toLowerCase()
@@ -43,7 +43,7 @@ export class SemanticDeduplicator {
       }
     }
 
-    // Выбираем победителей по HEX группам
+    // Choosing winners by HEX groups
     const hexWinners: ColorData[] = []
     const hexDuplicates: DuplicateGroup[] = []
 
@@ -68,7 +68,7 @@ export class SemanticDeduplicator {
       }
     }
 
-    // ШАГ 2: Группировка победителей по NAME (приоритет 2)
+    // STEP 2. Grouping winners by name (priority 2)
     for (const winner of hexWinners) {
       if (winner.name === '') continue
 
@@ -89,7 +89,7 @@ export class SemanticDeduplicator {
 
     if (!nameGroups.size) return { colors: hexWinners, stats: hexDuplicates }
 
-    // Финальный результат: победители по NAME
+    // Final result: winners by name
     const finalResult: ColorData[] = []
     const nameDuplicates: DuplicateGroup[] = []
 
@@ -97,7 +97,7 @@ export class SemanticDeduplicator {
       if (nameGroup.length === 1) {
         finalResult.push(nameGroup[0])
       } else {
-        // Выбираем лучшего среди HEX победителей с одинаковым именем
+        // Choosing the best among HEX winners with the same name
         const winner = this.selectBestName(nameGroup)
         finalResult.push(winner)
         nameDuplicates.push({

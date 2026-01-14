@@ -1,4 +1,4 @@
-import { ColorMetrics } from '../ColorMetrics.ts'
+import { ColorMetrics } from '../ColorMetrics'
 import { ColorData } from '@/types'
 
 import { colorKernels, colorModifiers } from '../words.ts'

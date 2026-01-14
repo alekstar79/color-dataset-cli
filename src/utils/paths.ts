@@ -22,9 +22,7 @@ export function buildPath(path: string, output?: string, ext: string | null = 'j
 }
 
 export function isPath(path?: any): boolean {
-  const lastSegment = typeof path === 'string' &&
-    path.split('/').pop()
+  const lastSegment = typeof path === 'string' && path.split('/').pop()
 
-  return !!lastSegment && !specialDirs(lastSegment) &&
-    containsExt(lastSegment)
+  return !!lastSegment && !specialDirs(lastSegment) && containsExt(lastSegment)
 }

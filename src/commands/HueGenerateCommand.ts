@@ -1,9 +1,8 @@
-import { ColorData, CommandContext, GenerateResult, GenerateStats, Tuple } from '@/types'
+import { ColorData, CommandContext, Family, GenerateResult, GenerateStats, Tuple } from '@/types'
 
 import { ColorMetrics } from '../utils/ColorMetrics'
 import { ProgressBar } from '../utils/ProgressBar'
 import { Logger } from '../utils/Logger'
-import { Family } from '../utils/words'
 
 import { Command } from '../core/Command'
 
@@ -14,7 +13,7 @@ export class HueGenerateCommand extends Command {
     super(
       'hue-generate',
       '<output> <count>',
-      'Генерация равномерного датасета цветов по цветовому спектру',
+      'Generating a uniform color dataset based on the color spectrum',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
@@ -28,11 +27,15 @@ export class HueGenerateCommand extends Command {
       }
     )
 
-    this.option('--saturation <value>', 'Насыщенность (10-100)', '85')
-      .option('--lightness <value>', 'Яркость (10-90)', '50')
-      .option('--hue-steps <value>', 'Шаг по Hue (1-30)', '3')
-      .option('--sat-spread <value>', 'Разброс насыщенности (±)', '15')
-      .option('--light-spread <value>', 'Разброс яркости (±)', '20')
+    this.option('--saturation <value>', 'Saturation (10-100)', '85')
+      .option('--lightness <value>', 'Brightness (10-90)', '50')
+      .option('--hue-steps <value>', 'Hue step (1-30)', '3')
+      .option('--sat-spread <value>', 'Saturation spread (±)', '15')
+      .option('--light-spread <value>', 'Brightness spread (±)', '20')
+      .validate(({ args, options }) => !(options.output || options.o || args[0])
+        ? '❌ Specify path to save: hue-generate <dataset> <output>'
+        : true
+      )
   }
 
   async perform(
@@ -48,10 +51,10 @@ export class HueGenerateCommand extends Command {
     const satSpread = parseInt(options['sat-spread'] as string) || 15
     const lightSpread = parseInt(options['light-spread'] as string) || 20
 
-    logger.info('🌈 Генерация равномерного цветового датасета...')
-    logger.info(`📊 Цветов: ${count}`)
+    logger.info('🌈 Generating a uniform color dataset...')
+    logger.info(`📊 Colors: ${count}`)
     logger.info(`🎚️  S: ${saturation}±${satSpread}, L: ${lightness}±${lightSpread}`)
-    logger.info(`🔄 Hue шаг: ${hueSteps}°`)
+    logger.info(`🔄 Hue step: ${hueSteps}°`)
 
     const result = this.generateDataset(count, {
       saturation,
@@ -63,7 +66,7 @@ export class HueGenerateCommand extends Command {
 
     this.printStats(result.stats, logger)
 
-    logger.success(`✅ Сгенерировано: ${result.data.length} цветов из ${this.families.size} семейств`)
+    logger.success(`✅ Generated: ${result.data.length} colors from ${this.families.size} families`)
 
     return result
   }
@@ -85,29 +88,29 @@ export class HueGenerateCommand extends Command {
     const stats: GenerateStats = { total: count, generated: 0, errors: 0 }
     const colors: ColorData[] = []
 
-    // Равномерное распределение Hue: 0-360°
+    // Hue uniform distribution: 0-360°
     const hueStep = 360 / count
     let currentHue = 0
 
     for (let i = 0; i < count; i++) {
       try {
-        // 1. Hue равномерно по кругу
+        // 1. Uniform hue in a circle
         const h = Math.round((currentHue % 360 + 360) % 360)
 
-        // 2. Saturation с разбросом вокруг базового значения
+        // 2. Saturation with a spread around the base value
         const sVariation = (Math.random() - 0.5) * 2 * (satSpread / 100)
         const s = Math.max(10, Math.min(100, saturation + sVariation * 100))
         const sNorm = Math.round(s)
 
-        // 3. Lightness с разбросом (избегаем слишком темных/светлых)
+        // 3. Lightness with a spread (avoiding too dark/light)
         const lVariation = (Math.random() - 0.5) * 2 * (lightSpread / 100)
         const l = Math.max(15, Math.min(85, lightness + lVariation * 100))
         const lNorm = Math.round(l)
 
-        // 4. Генерируем цвет из HSL
+        // 4. Generating a color from HSL
         const hex = ColorMetrics.hslToHex({ h, s: sNorm, l: lNorm })
 
-        // 5. Заполняем полную ColorData структуру
+        // 5. Filling in the full ColorData structure
         const rgb = ColorMetrics.hexToRgb(hex)
         const hslMetrics = ColorMetrics.hexToHslMetrics(hex)
         const family = ColorMetrics.getColorFamily({ h, s: sNorm, l: lNorm })
@@ -131,7 +134,7 @@ export class HueGenerateCommand extends Command {
 
       } catch (error) {
         stats.errors++
-        logger.debug(`Ошибка генерации цвета ${i}: ${error}`)
+        logger.debug(`Color generation error ${i}: ${error}`)
       }
 
       progress.update(1)
@@ -144,9 +147,9 @@ export class HueGenerateCommand extends Command {
   }
 
   private printStats(stats: GenerateStats, logger: any) {
-    logger.info('\n📊 СТАТИСТИКА ГЕНЕРАЦИИ:')
-    logger.info(`  ✅ Сгенерировано: ${stats.generated}/${stats.total}`)
-    logger.info(`  ❌ Ошибок: ${stats.errors}`)
-    logger.info(`  🌈 Покрытие Hue: ${((stats.generated / stats.total) * 360).toFixed(0)}°`)
+    logger.info('\n📊 GENERATION STATISTICS:')
+    logger.info(`  ✅ Generated: ${stats.generated}/${stats.total}`)
+    logger.info(`  ❌ Errors: ${stats.errors}`)
+    logger.info(`  🌈 Hue coverage: ${((stats.generated / stats.total) * 360).toFixed(0)}°`)
   }
 }

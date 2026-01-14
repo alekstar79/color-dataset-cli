@@ -8,11 +8,11 @@ export const saveDataHook: HookHandler = async (
   const { args, logger, command, dataset, result, options } = context
 
   if (!result?.data || !Array.isArray(result.data)) {
-    logger.debug('Save Data Hook: нет данных для сохранения')
+    logger.debug('Save Data Hook: No data to save')
     return
   }
 
-  // // 1. ИЗ АРГУМЕНТОВ (MergeCommand: <output> <input1> <input2>)
+  // // 1. FROM ARGUMENTS (MergeCommand: <output> <input1> <input2>)
   // const schema = command.config.schema
   // if (schema?.args?.[0]?.type === 'output' && args[0]) {
   //   const outputPath = args[0]
@@ -24,7 +24,7 @@ export const saveDataHook: HookHandler = async (
   //   return
   // }
   //
-  // // 2. ОБЫЧНЫЕ КОМАНДЫ: <input> <output>
+  // // 2. USUAL COMMANDS: <input> <output>
   // let outputPath: string | undefined
   // if (schema?.args?.[1]?.type === 'output' && args[1]) {
   //   outputPath = args[1]
@@ -37,7 +37,7 @@ export const saveDataHook: HookHandler = async (
   const schema = command.config.schema
   let outputPath: string | undefined
 
-  // ЛОГИКА 1: Ищем output по схеме (args[N].type === 'output')
+  // LOGIC 1: Looking for the output according to the scheme (args[N].type === 'output')
   if (schema?.args) {
     for (let i = 0; i < schema.args.length; i++) {
       if (schema.args[i].type === 'output' && args[i]) {
@@ -47,13 +47,13 @@ export const saveDataHook: HookHandler = async (
     }
   }
 
-  // ЛОГИКА 2: --output / -o
+  // LOGIC 2: --output / -o
   if (!outputPath && (options?.output || options?.o)) {
     outputPath = options.output || options.o
   }
 
   if (!outputPath) {
-    logger.debug('Save Data Hook: output путь не найден')
+    logger.debug('Save Data Hook: output path not found')
     return
   }
 

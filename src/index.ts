@@ -27,12 +27,12 @@ const app = new Application('ColorDatasetCli', '1.0.0')
 app.registerPlugin('dataset', new DatasetPlugin())
 
 // 2. Middlewares
-app.use(validationMiddleware())       // 1. Валидация схемы команды
-app.use(parserMiddleware())           // 2. Парсинг rawData → parsedData
+app.use(validationMiddleware())       // 1. Validation of the command schema
+app.use(parserMiddleware())           // 2. Parsing rawData → parsedData
 
 // 3. Hooks
-app.hook('preExecute', loadDataHook)  // 3. Загрузка rawData в preCommand
-app.hook('postExecute', saveDataHook) // 4. Сохранение результата
+app.hook('preExecute',  loadDataHook)  // 3. Uploading rawData
+app.hook('postExecute', saveDataHook)  // 4. Saving the result
 
 app.registerCommand(new AnalyzeCommand())
 app.registerCommand(new CapitalizeCommand())

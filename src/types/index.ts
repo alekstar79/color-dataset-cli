@@ -4,6 +4,14 @@ import { Command } from '@/core/Command'
 import { Logger } from '@/utils/Logger'
 import { Tracer } from '@/utils/Tracer'
 
+export type Family =
+  | 'red'     | 'orange' | 'yellow'  | 'chartreuse' | 'green'   | 'springgreen'
+  | 'cyan'    | 'azure'  | 'blue'    | 'violet'     | 'magenta' | 'rose'
+  | 'neutral' | 'lime'   | 'teal'    | 'purple'     | 'brown'   | 'gray'
+  | 'pink'    | 'black'  | 'white'   | 'metallic'   | 'pastel'  | 'neon'
+  | 'earth'   | 'jewel'  | 'skin'    | 'seasonal'   | 'food'    | 'nature'
+  | 'floral'  | 'cosmic' | 'vintage' | 'festive'
+
 export type FixedSizeArray<T, N extends number, R extends T[]> =
   R['length'] extends N ? R : FixedSizeArray<T, N, [T, ...R]>;
 
@@ -71,9 +79,9 @@ export interface CommandContext {
   pipe: PipeHandler;
   app: Application & { dataset: DatasetAPI };
   dataset: DatasetAPI;
-  rawDatasets?: Record<string, any>              // { "ds1.ts": raw1, "ds2.ts": raw2 }
-  parsedDatasets?: Record<string, ColorData[]>   // { "ds1.ts": colors1, "ds2.ts": colors2 }
-  parseMetadata?: Record<string, Metadata>
+  rawDatasets?: Record<string, any>;
+  parsedDatasets?: Record<string, ColorData[]>;
+  parseMetadata?: Record<string, Metadata>;
   result?: any;
   [key: string]: any;
 }
@@ -92,23 +100,23 @@ export interface CapitalizeResult {
 
 export interface CapitalizeResultExtended extends CapitalizeResult {
   transformStats?: {
-    dashTransformed: number
-    camelTransformed: number
-    spaceNormalized: number
-    unchanged: number
-    totalOperations: number
+    dashTransformed: number;
+    camelTransformed: number;
+    spaceNormalized: number;
+    unchanged: number;
+    totalOperations: number;
   }
 }
 
 export interface CopyStats {
-  total: number
-  copied: number
-  errors: number
+  total: number;
+  copied: number;
+  errors: number;
 }
 
 export interface CopyResult {
-  stats: CopyStats
-  data: ColorData[]
+  stats: CopyStats;
+  data: ColorData[];
 }
 
 export interface DatasetStats {
@@ -128,13 +136,13 @@ export interface DatasetStats {
 }
 
 export interface DistributionPhase {
-  name: string
-  targetFamilies: string[]
-  hRanges: number[][]
-  sRange: [number, number]
-  lRange: [number, number]
-  step: number
-  ratio: number
+  name: string;
+  targetFamilies: string[];
+  hRanges: number[][];
+  sRange: [number, number];
+  lRange: [number, number];
+  step: number;
+  ratio: number;
 }
 
 export interface DuplicateGroup {
@@ -158,8 +166,8 @@ export interface DeduplicateResult {
 }
 
 export interface MergeDeduplicateResult {
-  stats: DeduplicateStats[]
-  data: ColorData[]
+  stats: DeduplicateStats[];
+  data: ColorData[];
 }
 
 interface DuplicatesStats {
@@ -265,17 +273,17 @@ export interface NameNormalizeStats {
 }
 
 export interface PriorityMergeStats {
-  originalPrimary: number
-  originalSecondary: number
-  totalUnique: number
-  skippedFromSecondary: number
-  skipRate: string
-  deltaEThreshold: number
+  originalPrimary: number;
+  originalSecondary: number;
+  totalUnique: number;
+  skippedFromSecondary: number;
+  skipRate: string;
+  deltaEThreshold: number;
 }
 
 export interface PriorityMergeResult {
-  data: ColorData[]
-  stats: PriorityMergeStats
+  stats: PriorityMergeStats;
+  data: ColorData[];
 }
 
 export interface RecalcStats {

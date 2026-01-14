@@ -89,7 +89,7 @@ export class Command {
       for (const validator of this.validators) {
         const result = validator({ args, options, flags })
         if (result !== true) {
-          throw new Error(result || `Ошибка валидации для команды ${this.name}`)
+          throw new Error(result || `Validation error for command ${this.name}`)
         }
       }
 
@@ -112,10 +112,10 @@ export class Command {
   showHelp(): void {
     const logger = new Logger()
     logger.info(`\n${logger.colorize(this.description, 'cyan')}`)
-    logger.info(`Использование: ${this.name} ${this.signature}`)
+    logger.info(`Using: ${this.name} ${this.signature}`)
 
     if (this.options.length > 0) {
-      logger.info('\nОпции:')
+      logger.info('\nOptions:')
       for (const opt of this.options) {
         logger.info(`  ${opt.flags.padEnd(25)} ${opt.description}`)
       }

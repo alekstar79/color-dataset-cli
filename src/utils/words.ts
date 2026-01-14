@@ -1,10 +1,4 @@
-export type Family =
-  | 'red'      | 'orange' | 'yellow'  | 'chartreuse' | 'green'   | 'springgreen'
-  | 'cyan'     | 'azure'  | 'blue'    | 'violet'     | 'magenta' | 'rose'
-  | 'neutral'  | 'lime'   | 'teal'    | 'purple'     | 'brown'   | 'gray'
-  | 'pink'     | 'black'  | 'white'   | 'metallic'   | 'pastel'  | 'neon'
-  | 'earth'    | 'jewel'  | 'skin'    | 'seasonal'   | 'food'    | 'nature'
-  | 'floral'   | 'cosmic' | 'vintage' | 'festive'
+import { Family } from '@/types'
 
 /**
  * Dictionary of words for color families

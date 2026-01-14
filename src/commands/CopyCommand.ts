@@ -10,7 +10,7 @@ export class CopyCommand extends Command {
     super(
       'copy',
       '<input> <output>',
-      'Копирование датасета с преобразованием формата',
+      'Copying a dataset with format conversion',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
@@ -24,10 +24,10 @@ export class CopyCommand extends Command {
       }
     )
 
-    this.option('-o', '--output <path>', 'Сохранить результат')
-      .option('--format <format>', 'Формат (json|ts)', 'ts')
-      .option('--no-smart', 'Без обработки')
-      .option('--capitalize-only', 'Только capitalize')
+    this.option('-o', '--output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--no-smart', 'Without processing')
+      .option('--capitalize-only', 'Only capitalize')
   }
 
   async perform(
@@ -40,8 +40,8 @@ export class CopyCommand extends Command {
     const doSmart = !options.noSmart
     const onlyCapitalize = options['capitalize-only']
 
-    logger.info('📋 Копирование датасета...')
-    logger.info(`📊 Цветов: ${colors.length}`)
+    logger.info('📋 Copying a dataset...')
+    logger.info(`📊 Colors: ${colors.length}`)
 
     let result = this.copyDataset(colors)
 
@@ -66,7 +66,7 @@ export class CopyCommand extends Command {
       if (normalizeCmd?.processColors) {
         const normResult = normalizeCmd.processColors(result.data, app, { smart: true })
         result.data = normResult.data
-        logger.success(`✅ Normalize: ${normResult.nameStats.changed} изменено`)
+        logger.success(`✅ Normalize: ${normResult.nameStats.changed} changed`)
       }
     }
 
@@ -97,8 +97,8 @@ export class CopyCommand extends Command {
   }
 
   private printStats(stats: any, logger: any) {
-    logger.info('\n📊 СТАТИСТИКА:')
-    logger.info(`  ✅ Скопировано: ${stats.copied}/${stats.total}`)
-    logger.info(`  ❌ Ошибок: ${stats.errors || 0}`)
+    logger.info('\n📊 STATISTICS:')
+    logger.info(`  ✅ Copied: ${stats.copied}/${stats.total}`)
+    logger.info(`  ❌ Errors: ${stats.errors || 0}`)
   }
 }

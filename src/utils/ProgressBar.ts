@@ -12,8 +12,6 @@ export class ProgressBar {
   readonly showSpeed: boolean
   private current: number = 0
   private startTime: number = Date.now()
-
-  // Режим накопления
   private accumulationMode: boolean = false
   private k: number
 
@@ -25,7 +23,6 @@ export class ProgressBar {
     this.k = 1
   }
 
-  // Метод накопления
   accumulate(expandedTotal: number, phaseWeight: number = 1.0) {
     this.k += (expandedTotal * phaseWeight / this.total / 100)
     this.k = Math.ceil(this.k * 100000) / 100000

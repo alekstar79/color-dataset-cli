@@ -10,24 +10,24 @@ export const loadDataHook: HookHandler = async (
   const schema = (command as any).config?.schema
   const datasetApi = (app as any).dataset
 
-  // Ищем dataset пути по схеме команды
+  // Looking for dataset paths according by the command scheme
   const datasetPaths: string[] = []
 
   if (schema?.args) {
-    // Анализируем аргументы по схеме
+    // Analyzing arguments according to the scheme
     schema.args.forEach((rule: any, index: number) => {
       if (rule.type === 'path' && args[index]) {
         datasetPaths.push(args[index])
       }
     })
 
-    // Если первый аргумент не dataset, ищем остальные
+    // If the first argument is not dataset, looking for the rest
     if (schema.args[0]?.type !== 'path' && args.length > 1) {
       datasetPaths.push(...args.slice(1).filter(a => !/^\d+$/.test(a)))
     }
   }
 
-  // Загружаем все найденные датасеты
+  // Uploading all found datasets
   if (datasetPaths.length > 0) {
     logger.info(`📂 Loading ${datasetPaths.length} dataset(s): ${datasetPaths.join(', ')}`)
     context.rawDatasets = {} as Record<string, any>
@@ -46,7 +46,7 @@ export const loadDataHook: HookHandler = async (
               const result = await parser.parseDataset(rawData)
               logger.info(`📄 ${path}: ${result.format} (${Math.round(result.confidence * 100)}%)`)
               context.parsedDatasets[path] = result.colors
-              logger.debug(`  ✅ ${path}: ${result.colors.length} цветов`)
+              logger.debug(`  ✅ ${path}: ${result.colors.length} colors`)
             } catch (error: any) {
               logger.error(`❌ ${path}: ${error.message}`)
               context.parsedDatasets[path] = []

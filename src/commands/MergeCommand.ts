@@ -12,7 +12,7 @@ export class MergeCommand extends Command {
     super(
       'merge',
       '<output> [<dataset1> <dataset2> ...]',
-      'Слияние датасетов без дублей HEX+NAME',
+      'Merging datasets without duplicates HEX+NAME',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
@@ -26,11 +26,11 @@ export class MergeCommand extends Command {
       }
     )
 
-    this.option('-f, --format <format>', 'Формат (json|ts)', 'ts')
-      .option('--capitalize', 'Принудительная капитализация (по умолчанию)')
-      .option('--dedupe', 'Принудительная дедупликация (по умолчанию)')
+    this.option('-f, --format <format>', 'Format (json|ts)', 'ts')
+      .option('--capitalize', 'Forceful capitalization (default)')
+      .option('--dedupe', 'Forceful deduplication (default)')
       .validate(({ args }) => !args[0]
-        ? '❌ Укажите путь для сохранения: merge <output> <dataset1> <dataset2> ...'
+        ? '❌ Specify path to save: merge <output> <dataset1> <dataset2> ...'
         : true
       )
   }
@@ -43,7 +43,7 @@ export class MergeCommand extends Command {
     const capitalize = options.capitalize !== false
     const dedupe = options.dedupe !== false
 
-    logger.info(`🔗 Мерж ${Object.keys(datasets).length} датасетов`)
+    logger.info(`🔗 Merging ${Object.keys(datasets).length} datasets`)
 
     const allColors = Object.values(datasets).flat()
 
@@ -55,7 +55,7 @@ export class MergeCommand extends Command {
       ? this.capitalizeNames(result.data, app, logger)
       : result.data
 
-    logger.success(`✅ Мерж завершен: ${result.data.length} уникальных цветов`)
+    logger.success(`✅ Merges completed: ${result.data.length} unique colors`)
     this.printMergeStats(allColors.length, result, logger)
 
     return {
@@ -70,11 +70,11 @@ export class MergeCommand extends Command {
     app: Application,
     logger: Logger
   ): DeduplicateResult {
-    logger.info('🔬 Дедупликация HEX+NAME...')
+    logger.info('🔬 Deduplication by HEX+NAME...')
 
     const deduplicateCommand = app.commands.get('deduplicate') as DeduplicateCommand
     if (!deduplicateCommand?.deduplicate) {
-      throw new Error('❌ Команда "deduplicate" не найдена или метод deduplicate отсутствует')
+      throw new Error('❌ The "deduplicate" command was not found or the "deduplicate" method is missing')
     }
 
     return deduplicateCommand.deduplicate(colors)
@@ -89,21 +89,21 @@ export class MergeCommand extends Command {
 
     const capitalizeCommand = app.commands.get('capitalize') as CapitalizeCommand
     if (!capitalizeCommand?.processColors) {
-      throw new Error('❌ Команда "capitalize" не найдена или метод processColors отсутствует')
+      throw new Error('❌ The "capitalize" command was not found or the "processColors" method is missing')
     }
 
     return capitalizeCommand.processColors(colors).data
   }
 
   printMergeStats(inputTotal: number, result: any, logger: any) {
-    logger.info('\n📊 СТАТИСТИКА МЕРЖА:')
-    logger.info(`Вход:        ${inputTotal} цветов`)
-    logger.info(`Результат:   ${result.data.length} уникальных`)
-    logger.info(`Удалено:     ${inputTotal - result.data.length} дублей`)
-    logger.info(`Эффективно:  ${((result.data.length / inputTotal) * 100).toFixed(1)}%`)
+    logger.info('\n📊 MERGE STATISTICS:')
+    logger.info(`Input:       ${inputTotal} colors`)
+    logger.info(`Result:      ${result.data.length} unique`)
+    logger.info(`Deleted:     ${inputTotal - result.data.length} duplicates`)
+    logger.info(`Efficiency:  ${((result.data.length / inputTotal) * 100).toFixed(1)}%`)
 
     if (result.stats?.length > 0) {
-      logger.info('\n🔍 ТОП-5 ДУБЛЕЙ:')
+      logger.info('\n🔍 TOP 5 DUPLICATES:')
 
       result.stats.slice(0, 5).forEach((dup: any, i: number) => {
         logger.info(`  ${i+1}. ${dup.hex || dup.names?.[0]} → "${dup.selected}" (${dup.reason})`)

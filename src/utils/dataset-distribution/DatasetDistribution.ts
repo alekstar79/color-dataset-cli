@@ -14,7 +14,7 @@ export class DatasetDistribution {
   generateStructuredDataset(logger: Logger): ColorData[] {
     const colors: ColorData[] = []
 
-    // 5 ФАЗ ПОКРЫВАЮТ ВЕСЬ СПЕКТР
+    // 5 PHASES COVER THE ENTIRE SPECTRUM
     const phases: DistributionPhase[] = [
       {
         name: 'Primary Colors',
@@ -70,9 +70,9 @@ export class DatasetDistribution {
       logger.info(`  📦 ${phase.name}: ${phaseTarget} цветов (${(phase.ratio*100).toFixed(0)}%)`)
       const pb = new ProgressBar({ total: phaseTarget })
 
-      // Генерируем точно phaseTarget цветов
+      // Generating exactly phaseTarget colors
       while (phaseGenerated < phaseTarget && colors.length < this.totalColors) {
-        // Равномерно по всему спектру
+        // Evenly distributed across the spectrum
         const h = Math.random() * 360
         const s = phase.sRange[0] + Math.random() * (phase.sRange[1] - phase.sRange[0])
         const l = phase.lRange[0] + Math.random() * (phase.lRange[1] - phase.lRange[0])

@@ -65,11 +65,11 @@ export class Application {
   }
 
   private registerBuiltins(): void {
-    this.registerAction('help', '[command]', 'Показать справку', (args: any) => {
+    this.registerAction('help', '[command]', 'Show help', (args: any) => {
       if (args[0]) {
         const cmd = this.commands.get(args[0])
         if (cmd) cmd.showHelp()
-        else this.logger.error(`Команда "${args[0]}" не найдена`)
+        else this.logger.error(`Command "${args[0]}" not found`)
       } else {
         this.showHelp()
       }
@@ -77,13 +77,13 @@ export class Application {
       return Promise.resolve()
     })
 
-    this.registerAction('version', '', 'Показать версию', () => {
+    this.registerAction('version', '', 'Show the version', () => {
       this.logger.info(`${this.name} v${this.version}`)
       return Promise.resolve()
     })
 
-    this.registerAction('plugins', '', 'Список плагинов', () => {
-      this.logger.info('Загруженные плагины:')
+    this.registerAction('plugins', '', 'List of plugins', () => {
+      this.logger.info('Uploaded plugins:')
 
       for (const [name, plugin] of this.plugins) {
         this.logger.info(`  ${name} v${plugin.version || '1.0.0'} - ${plugin.description || ''}`)
@@ -95,7 +95,7 @@ export class Application {
 
   use(middleware: MiddlewareHandler): this {
     if (typeof middleware !== 'function') {
-      throw new Error('Middleware должен быть функцией')
+      throw new Error('Middleware should be a function')
     }
 
     this.middlewares.push(middleware)
@@ -117,7 +117,7 @@ export class Application {
 
   registerPlugin(name: string, plugin: any): this {
     if (typeof plugin.install !== 'function') {
-      throw new Error('Плагин должен иметь метод install')
+      throw new Error('The plugin must have the install method')
     }
 
     this.plugins.set(name, plugin)
@@ -129,7 +129,7 @@ export class Application {
       use: this.use.bind(this)
     })
 
-    this.logger.debug(`Плагин "${name}" загружен`)
+    this.logger.debug(`The plugin "${name}" is loaded`)
 
     return this
   }
@@ -164,14 +164,14 @@ export class Application {
 
   async run(argv: string[] = process.argv.slice(2)): Promise<void> {
     try {
-      // preParse хук
+      // preParse hook
       await this.executeHooks('preParse', { argv })
 
-      // Ранний парсинг глобальных флагов
+      // Early parsing of global flags
       const earlyParsed: ParsedArgs = parseArgs(argv)
       this.applyGlobalFlags(earlyParsed.flags, earlyParsed.options)
 
-      // postParse хук
+      // postParse hook
       await this.executeHooks('postParse', {
         commandName: earlyParsed.commandName,
         args: earlyParsed.args,
@@ -179,7 +179,7 @@ export class Application {
         flags: earlyParsed.flags
       })
 
-      // Парсинг для команды
+      // Parsing the command
       const { commandName, args, options, flags } = parseArgs(argv)
       if (!commandName || commandName === 'help') {
         this.showHelp(commandName === 'help' ? args[0] : undefined)
@@ -260,23 +260,23 @@ export class Application {
     if (commandName) {
       const cmd = this.commands.get(commandName)
       if (cmd) cmd.showHelp()
-      else this.logger.error(`Команда "${commandName}" не найдена`)
+      else this.logger.error(`Command "${commandName}" not found`)
     } else {
       this.logger.info(`${this.name} v${this.version}`)
-      this.logger.info('Использование: cli <command> [аргументы]')
-      this.logger.info('\nДоступные команды:')
+      this.logger.info('Using: cli <command> [arguments]')
+      this.logger.info('\nAvailable Commands:')
 
       for (const [name, cmd] of this.commands) {
         const signature = cmd.signature ? `${name} ${cmd.signature}` : name
         this.logger.info(`  ${signature.padEnd(30)} - ${cmd.description}`)
       }
 
-      this.logger.info('\nГлобальные опции:')
-      this.logger.info('  --help, -h              Показать справку')
-      this.logger.info('  --version, -v           Показать версию')
-      this.logger.info('  --verbose               Подробный вывод')
-      this.logger.info('  --trace                 Включить трассировку')
-      this.logger.info('  --no-color              Отключить цвета')
+      this.logger.info('\nGlobal options:')
+      this.logger.info('  --help, -h           Show help')
+      this.logger.info('  --version, -v        Show version')
+      this.logger.info('  --verbose            Detailed output')
+      this.logger.info('  --trace              Enable tracing')
+      this.logger.info('  --no-color           Disable colors')
     }
   }
 }

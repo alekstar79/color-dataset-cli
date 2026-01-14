@@ -13,7 +13,7 @@ export class DeduplicateCommand extends Command {
     super(
       'deduplicate',
       '<dataset> [output]',
-      'Дедублицировать датасет цветов по HEX и имени (exact match)',
+      'Deduplicate color dataset by HEX and name (exact match)',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
@@ -29,12 +29,12 @@ export class DeduplicateCommand extends Command {
 
     this.deduplicator = new SemanticDeduplicator()
 
-    this.option('-o, --output <path>', 'Сохранить результат')
-      .option('--format <format>', 'Формат (json|ts)', 'ts')
-      .option('--report', 'Показать подробный отчёт')
-      .option('--save-report <path>', 'Сохранить отчёт')
+    this.option('-o, --output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--report', 'Show a detailed report')
+      .option('--save-report <path>', 'Save the report')
       .validate(({ args }) => !args[0]
-        ? '❌ Укажите путь к датасету: deduplicate <dataset> <output>'
+        ? '❌ Specify path to the dataset: deduplicate <dataset> <output>'
         : true
       )
   }
@@ -44,16 +44,16 @@ export class DeduplicateCommand extends Command {
     _metadata: Record<string, any>,
     { args, options, logger }: CommandContext
   ): Promise<DeduplicateResult> {
-    logger.info('🔬 Семантическая дедупликация датасета...')
+    logger.info('🔬 Semantic dataset deduplication...')
 
     const colors = datasets[args[0]]
     const showReport = options.report
 
-    logger.info(`📊 Исходных цветов: ${colors.length}`)
+    logger.info(`📊 Original colors: ${colors.length}`)
 
     const result = this.deduplicate(colors)
 
-    logger.success(`✅ Дедупликация завершена: ${result.stats.removed} удалено`)
+    logger.success(`✅ Deduplication is complete: ${result.stats.removed} deleted`)
     this.printStats(result.stats, logger)
 
     if (showReport) {
@@ -83,21 +83,21 @@ export class DeduplicateCommand extends Command {
   }
 
   printStats(stats: DeduplicateStats, logger: any) {
-    logger.info('\n📊 СТАТИСТИКА ДЕДУПЛИКАЦИИ:')
-    logger.info(`Оригинал:    ${stats.original}`)
-    logger.info(`Уникальных:  ${stats.unique}`)
-    logger.info(`Удалено:     ${stats.removed}`)
-    logger.info(`Процент:     ${stats.removalRate}%`)
+    logger.info('\n📊 DEDUPLICATION STATISTICS:')
+    logger.info(`Original:  ${stats.original}`)
+    logger.info(`Unique:    ${stats.unique}`)
+    logger.info(`Deleted:   ${stats.removed}`)
+    logger.info(`Percent:   ${stats.removalRate}%`)
   }
 
   printDetailedReport(result: DeduplicateResult, logger: any) {
-    logger.info('\n📈 ДЕТАЛЬНЫЙ ОТЧЁТ:')
+    logger.info('\n📈 DETAILED REPORT:')
 
     for (const dup of result.duplicates.slice(0, 10)) {
       logger.info(`  ${dup.hex}: ${dup.names.join(' → ')} → ${dup.selected} (${dup.reason})`)
     }
     if (result.duplicates.length > 10) {
-      logger.info(`  ... и ещё ${result.duplicates.length - 10} групп`)
+      logger.info(`  ... and ${result.duplicates.length - 10} more groups`)
     }
   }
 
@@ -108,6 +108,6 @@ export class DeduplicateCommand extends Command {
   ) {
     const report = this.deduplicator.generateReport(result.data)
     await writeFile(path, JSON.stringify(report, null, 2), 'utf-8')
-    logger.success(`📄 Отчёт сохранён: ${path}`)
+    logger.success(`📄 Report is saved: ${path}`)
   }
 }

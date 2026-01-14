@@ -11,7 +11,7 @@ export class SortCommand extends Command {
     super(
       'sort',
       '<dataset> <output>',
-      'Сортировка цветов по name, hex или hue (стабильная O(n log n))',
+      'Sorting colors by name, hex, or hue (stable O(n log n))',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
@@ -26,17 +26,17 @@ export class SortCommand extends Command {
       }
     )
 
-    this.option('-o, --output <path>', 'Сохранить результат')
-      .option('--format <format>', 'Формат (json|ts)', 'ts')
-      .option('--by <field>', 'Поле сортировки: name|hex|hue', 'name')
-      .option('--reverse, -r', 'Обратный порядок')
-      .option('--stable', 'Стабильная сортировка (по умолчанию)')
+    this.option('-o, --output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--by <field>', 'Sorting field: name|hex|hue', 'name')
+      .option('--reverse, -r', 'Reverse order')
+      .option('--stable', 'Stable sorting (default)')
       .validate(({ args }) => !args[0]
-        ? '❌ Укажите путь к датасету: sort <dataset> <output>'
+        ? '❌ Specify path to the dataset: sort <dataset> <output>'
         : true
       )
       .validate(({ args, options }) => !(options.output || options.o || args[1])
-        ? '❌ Укажите путь для сохранения: sort <dataset> <output>'
+        ? '❌ Specify path to save: sort <dataset> <output>'
         : true
       )
   }
@@ -50,12 +50,12 @@ export class SortCommand extends Command {
     const sortBy = (options.by || 'hex') as 'name' | 'hex' | 'hue'
     const reverse = options.reverse || options.r
 
-    logger.info(`🔤 Сортировка по "${sortBy}" ${reverse ? '(обратно)' : ''}...`)
-    logger.info(`📊 Цветов: ${colors.length}`)
+    logger.info(`🔤 Sorting by "${sortBy}" ${reverse ? '(reverse)' : ''}...`)
+    logger.info(`📊 Colors: ${colors.length}`)
 
     const result = this.sortData(colors, sortBy, reverse, logger)
 
-    logger.success(`✅ Отсортировано: ${result.stats.original} → ${result.stats.sorted}`)
+    logger.success(`✅ Sorted: ${result.stats.original} → ${result.stats.sorted}`)
     this.printStats(result.stats, logger)
 
     return result
@@ -127,15 +127,15 @@ export class SortCommand extends Command {
   }
 
   printStats(stats: SortStats, logger: any) {
-    logger.info('\n📊 СТАТИСТИКА СОРТИРОВКИ:')
-    logger.info(`Поле:        ${stats.field}${stats.reverse ? ' (↕️)' : ''}`)
-    logger.info(`Всего:       ${stats.original}`)
+    logger.info('\n📊 SORTING STATISTICS:')
+    logger.info(`Field:    ${stats.field}${stats.reverse ? ' (↕️)' : ''}`)
+    logger.info(`Total:    ${stats.original}`)
 
     if (stats.field === 'hue') {
       const uniquePct = ((stats.uniqueValues / stats.original) * 100).toFixed(1)
-      logger.info(`Уникальных hue: ${stats.uniqueValues} (${uniquePct}%)`)
+      logger.info(`Unique hue: ${stats.uniqueValues} (${uniquePct}%)`)
     } else {
-      logger.info(`Уникальных:    ${stats.uniqueValues}`)
+      logger.info(`Unique:     ${stats.uniqueValues}`)
     }
   }
 }

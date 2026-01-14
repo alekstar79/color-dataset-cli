@@ -1,5 +1,4 @@
-import { ColorData, Tuple } from '@/types'
-import { Family } from './words.ts'
+import { ColorData, Family, Tuple } from '@/types'
 
 export class ColorMetrics {
   static getTemperature(hsl: { h: number; s: number; l: number }): string {

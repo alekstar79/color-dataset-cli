@@ -7,24 +7,28 @@ export class CapitalizeCommand extends Command {
     super(
       'capitalize',
       '<dataset> [output]',
-      'Title Case + dash-case → spaced words (2-3 слова)',
+      'Title Case + dash-case → spaced words (2-3 words)',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
         strict: true,
         schema: {
           args: [
-            { name: 'dataset', required: true, type: 'path' },
+            { name: 'dataset', required: true, type: 'path'   },
             { name: 'output', required: false, type: 'output' }
           ]
         }
       }
     )
 
-    this.option('-o', '--output <path>', 'Сохранить результат')
-      .option('--format <format>', 'Формат (json|ts)', 'ts')
+    this.option('-o', '--output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts)', 'ts')
       .option('--smart', 'Smart capitalize (dash-case → spaces)', true)
-      .option('--strict', 'Только Title Case без dash')
+      .option('--strict', 'Only Title Case without dash')
+      .validate(({ args }) => !args[0]
+        ? '❌ Specify path to the dataset: capitalize <dataset> <output>'
+        : true
+      )
   }
 
   async perform(
@@ -36,10 +40,10 @@ export class CapitalizeCommand extends Command {
     const colors = datasets[args[0]!]
 
     logger.info(`🔬 Smart Capitalization ${useSmart ? '+ Dash → Spaces' : '(Title Case)'}`)
-    logger.info(`📊 Цветов: ${colors.length}`)
+    logger.info(`📊 Colors: ${colors.length}`)
 
     const result = this.processColors(colors, { smart: useSmart })
-    logger.success(`✅ Обработано: ${result.original} → ${result.capitalized}`)
+    logger.success(`✅ Processed: ${result.original} → ${result.capitalized}`)
     this.printTransformStats(result, logger)
 
     return result
@@ -170,10 +174,10 @@ export class CapitalizeCommand extends Command {
     const stats = result.transformStats
     if (!stats) return
 
-    logger.info('\n📊 ТРАНСФОРМАЦИИ:')
-    logger.info(`  Dash-case: ${stats.dashTransformed}`)
-    logger.info(`  CamelCase: ${stats.camelTransformed}`)
-    logger.info(`  Spaces:    ${stats.spaceNormalized}`)
-    logger.info(`  Без zmian: ${stats.unchanged}`)
+    logger.info('\n📊 TRANSFORMATIONS:')
+    logger.info(`  Dash-case:     ${stats.dashTransformed}`)
+    logger.info(`  CamelCase:     ${stats.camelTransformed}`)
+    logger.info(`  Spaces:        ${stats.spaceNormalized}`)
+    logger.info(`  Without zmian: ${stats.unchanged}`)
   }
 }

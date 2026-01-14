@@ -9,7 +9,7 @@ import { promises as fs } from 'node:fs'
 export class DatasetPlugin {
   name = 'dataset'
   version = '1.0.0'
-  description = 'Универсальный плагин загрузки и сохранения датасета'
+  description = 'Plugin for uploading and saving a dataset'
 
   install(app: Application, api: PluginAPI): void {
     const { logger } = api
@@ -27,7 +27,7 @@ export class DatasetPlugin {
       await next()
     })
 
-    logger.success(`✅ Плагин ${this.name} v${this.version} установлен`)
+    logger.success(`✅ Plugin ${this.name} v${this.version} is installed`)
   }
 
   async load(datasetPath: string): Promise<any> {
@@ -35,7 +35,7 @@ export class DatasetPlugin {
       const module = await import(datasetPath)
       return module.default || module
     } catch (error: any) {
-      throw new Error(`Ошибка загрузки "${datasetPath}": ${error.message}`)
+      throw new Error(`Loading error "${datasetPath}": ${error.message}`)
     }
   }
 
@@ -71,9 +71,9 @@ export class DatasetPlugin {
 
       await fs.writeFile(absolutePath, content, 'utf8')
       const stats = await fs.stat(absolutePath)
-      logger.success(`💾 Сохранён: ${absolutePath} (${stats.size} байт)`)
+      logger.success(`💾 Saved: ${absolutePath} (${stats.size} bytes)`)
     } catch (error: any) {
-      logger.error(`❌ Ошибка сохранения ${absolutePath}: ${error.message}`)
+      logger.error(`❌ Saving error ${absolutePath}: ${error.message}`)
       throw error
     }
   }
@@ -81,7 +81,8 @@ export class DatasetPlugin {
   // Dataset validation
   validate(data: ColorData[]): ColorData[] {
     return data.filter(color =>
-      color.name && color.hex && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color.hex)
+      Reflect.has(color, 'name') && Reflect.has(color, 'hex') &&
+      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color.hex)
     )
   }
 

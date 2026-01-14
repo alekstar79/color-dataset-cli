@@ -1,5 +1,4 @@
-import { ColorData } from '@/types'
-import { Family } from '../words'
+import {ColorData, Family} from '@/types'
 
 import { Logger } from '../Logger'
 

@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 interface Span {
   name: string
   start: number

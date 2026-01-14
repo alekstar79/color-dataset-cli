@@ -7,7 +7,7 @@ export class NormalizeCommand extends Command {
     super(
       'normalize',
       '<dataset> [output]',
-      'Нормализация/денормализация RGB/HSL значений [0-255/360] ↔ [0-1]',
+      'Normalization/denormalization of RGB/HSL values [0-255/360] ↔ [0-1]',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
@@ -22,19 +22,19 @@ export class NormalizeCommand extends Command {
       }
     )
 
-    this.option('-o, --output <path>', 'Сохранить результат')
-      .option('--format <format>', 'Формат (json|ts)', 'ts')
-      .option('--normalize, -n', 'Нормализовать → [0-1] (по умолчанию)')
-      .option('--denormalize, -d', 'Денормализовать [0-1] → [0-255/360]')
-      .option('--rgb', 'Только RGB свойства')
-      .option('--hsl', 'Только HSL свойства')
-      .option('--all', 'Все свойства (по умолчанию)')
+    this.option('-o, --output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--normalize, -n', 'Normalize → [0-1] (default)')
+      .option('--denormalize, -d', 'Denormalize [0-1] → [0-255/360]')
+      .option('--rgb', 'RGB properties only')
+      .option('--hsl', 'HSL properties only')
+      .option('--all', 'All properties (default)')
       .validate(({ args }) => !args[0]
-        ? '❌ Укажите путь к датасету: normalize <dataset> <output>'
+        ? '❌ Specify path to the dataset: normalize <dataset> <output>'
         : true
       )
       .validate(({ args, options }) => !(options.output || options.o || args[1])
-        ? '❌ Укажите путь для сохранения: normalize <dataset> <output>'
+        ? '❌ Specify path to save: normalize <dataset> <output>'
         : true
       )
   }
@@ -44,17 +44,17 @@ export class NormalizeCommand extends Command {
     _metadata: Record<string, any>,
     { args, flags, options, logger }: CommandContext
   ): Promise<NormalizeResult> {
-    logger.info('🔢 Нормализация/денормализация цветовых значений...')
+    logger.info('🔢 Normalization/denormalization of color values...')
 
     const colors = datasets[args[0]]
     const mode = options.denormalize || options.d ? 'denormalize' : 'normalize'
     const target = this.getTarget(options, flags)
 
-    logger.info(`📊 Цветов: ${colors.length}`)
+    logger.info(`📊 Colors: ${colors.length}`)
 
     const result = this.processNormalization(colors, mode, target)
 
-    logger.success(`✅ ${mode === 'normalize' ? 'Нормализация' : 'Денормализация'} завершена`)
+    logger.success(`✅ ${mode === 'normalize' ? 'Normalization' : 'Denormalization'} completed`)
     this.printStats(result.stats, logger)
 
     return result
@@ -146,35 +146,39 @@ export class NormalizeCommand extends Command {
     }
   }
 
-  private processValue(value: number, mode: 'normalize' | 'denormalize', maxFull: number): number {
+  private processValue(
+    value: number,
+    mode: 'normalize' | 'denormalize',
+    maxFull: number
+  ): number {
     if (isNaN(value) || value === undefined) {
       throw new Error('Invalid value')
     }
 
     if (mode === 'normalize') {
-      // Полный диапазон → нормализуем, если уже нормализовано [0-1] → не трогаем
+      // Full range → normalize if already normalized [0-1] → do not touch
       const normalized = value > 1 ? value / maxFull : value
       return Number(normalized.toFixed(3))
     } else {
-      // Денормализация [0-1] → полный диапазон
+      // Denormalization [0-1] → full range
       if (value <= 1.001) return Math.round(value * maxFull)
-      // Уже полный диапазон → не трогаем
+      // Already full range → do not touch
       return Math.round(value)
     }
   }
 
   printStats(stats: NormalizeStats, logger: any) {
-    logger.info('\n📊 СТАТИСТИКА ОБРАБОТКИ:')
-    logger.info(`Всего цветов: ${stats.totalColors}`)
+    logger.info('\n📊 PROCESSING STATISTICS:')
+    logger.info(`Total colors: ${stats.totalColors}`)
 
     logger.info(`\n🎨 RGB:`)
-    logger.info(`  ✅ Обработано: ${stats.rgbProcessed}`)
-    logger.info(`  ❌ Пропущено: ${stats.rgbSkipped}`)
+    logger.info(`  ✅ Processed: ${stats.rgbProcessed}`)
+    logger.info(`  ❌ Skipped: ${stats.rgbSkipped}`)
 
     logger.info(`\n🌈 HSL:`)
-    logger.info(`  ✅ Обработано: ${stats.hslProcessed}`)
-    logger.info(`  ❌ Пропущено: ${stats.hslSkipped}`)
+    logger.info(`  ✅ Processed: ${stats.hslProcessed}`)
+    logger.info(`  ❌ Skipped: ${stats.hslSkipped}`)
 
-    logger.info(`\n🔄 Режим: ${stats.normalized > 0 ? 'Нормализация' : 'Денормализация'}`)
+    logger.info(`\n🔄 Mode: ${stats.normalized > 0 ? 'Normalization' : 'Denormalization'}`)
   }
 }
