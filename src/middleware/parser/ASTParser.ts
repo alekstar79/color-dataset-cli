@@ -1,5 +1,5 @@
 import { ColorMetrics } from '@/utils/ColorMetrics'
-import type { ColorData, Tuple } from '@/types'
+import { ColorData, Tuple } from '@/types'
 
 export class ASTParser {
   parse(data: any, format: string): ColorData[] {

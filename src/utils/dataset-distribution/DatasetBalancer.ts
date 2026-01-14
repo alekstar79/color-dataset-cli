@@ -1,4 +1,4 @@
-import {ColorData, Family, Tuple} from '@/types'
+import { ColorData, Family, Tuple } from '@/types'
 
 import { ColorMetrics } from '../ColorMetrics'
 import { Logger } from '../Logger'
