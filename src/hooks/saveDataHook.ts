@@ -58,7 +58,7 @@ export const saveDataHook: HookHandler = async (
   }
 
   const format = options?.format || 'ts'
-  logger.info(`💾 Saving ${result.data.length} colors to ${outputPath}`)
+  logger.info(`💾 Saving ${result.data.length} colors to ${outputPath} format ${format}`)
 
   try {
     await dataset.save(result.data, outputPath, format, logger)

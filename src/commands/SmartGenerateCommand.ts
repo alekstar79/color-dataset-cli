@@ -30,7 +30,9 @@ export class SmartGenerateCommand extends Command {
 
     this.analyzer = new FamilyCoverageAnalyzer()
 
-    this.option('--phases <value>', 'Number of generation phases (1-5)', '3')
+    this.option('-o', '--output <path>', 'Save the result')
+      .option('-f, --format <format>', 'Format (json|ts|minify)', 'ts')
+      .option('--phases <value>', 'Number of generation phases (1-5)', '3')
       .option('--tolerance <value>', 'Balancing tolerance % (10-50)', '30')
       .validate(({ args, options }) => !(options.output || options.o || args[0])
         ? '❌ Specify path to save: smart-generate <dataset> <output>'

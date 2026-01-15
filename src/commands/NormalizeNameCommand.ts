@@ -61,7 +61,7 @@ export class NormalizeNameCommand extends Command {
       }))
 
     this.option('-o', '--output <path>', 'Save the result')
-      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--format <format>', 'Format (json|ts|minify)', 'ts')
       .option('--report', 'Detailed report')
       .option('--dry-run', 'Analysis only')
       .option('--smart', 'Smart capitalize', true)

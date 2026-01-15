@@ -23,7 +23,7 @@ export class CapitalizeCommand extends Command {
     )
 
     this.option('-o', '--output <path>', 'Save the result')
-      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--format <format>', 'Format (json|ts|minify)', 'ts')
       .option('--smart', 'Smart capitalize (dash-case → spaces)', true)
       .option('--strict', 'Only Title Case without dash')
       .validate(({ args }) => !args[0]

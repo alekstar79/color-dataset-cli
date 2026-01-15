@@ -24,7 +24,7 @@ export class RecalcCommand extends Command {
     )
 
     this.option('-o, --output <path>', 'Save the result')
-      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--format <format>', 'Format (json|ts|minify)', 'ts')
       .option('--denormalize, -d', 'Denormalize')
       .option('--family, -f', 'Forced redefinition of the family')
       .validate(({ args }) => !args[0]
@@ -49,7 +49,7 @@ export class RecalcCommand extends Command {
     const forceFamily = options.family || options.f
 
     const result = this.recalculateFromHex(colors, forceFamily, logger)
-    logger.success('✅ Пересчёт завершён')
+    logger.success('✅ Recalculation completed')
     this.printStats(result.stats, logger)
 
     let finalData = result.data

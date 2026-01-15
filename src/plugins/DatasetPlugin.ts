@@ -54,6 +54,8 @@ export class DatasetPlugin {
       let content: string
       if (format === 'json') {
         content = JSON.stringify(data, null, 2)
+      } else if (format === 'minify') {
+        content = `export default [${data.reduce(this.minify.bind(this), '')}]`
       } else {
         content = `/**\n * Dataset - ${data.length} colors\n * Generated: ${new Date().toLocaleString('ru-RU')}\n */\n\nexport default [\n`
 
@@ -76,6 +78,17 @@ export class DatasetPlugin {
       logger.error(`❌ Saving error ${absolutePath}: ${error.message}`)
       throw error
     }
+  }
+
+  minify(acc: string, color: ColorData, index: number, data: ColorData[]): string {
+    let { hex, name, family, hueRange, rgb, hsl } = color
+
+    family ??= ColorMetrics.getColorFamily(hsl)
+    const rgbStr = `[${this.format(rgb[0])},${this.format(rgb[1])},${this.format(rgb[2])}]`
+    const hslStr = `{h:${this.format(hsl.h)},s:${this.format(hsl.s)},l:${this.format(hsl.l)}}`
+    acc += `{hex:"${hex}",name:"${name}",family:"${family!.toLowerCase()}",hueRange:[${hueRange![0].toFixed(1)},${hueRange![1].toFixed(1)}],rgb:${rgbStr},hsl:${hslStr}}${index < data.length - 1 ? ',' : ''}`
+
+    return acc
   }
 
   // Dataset validation

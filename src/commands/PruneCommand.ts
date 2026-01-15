@@ -24,7 +24,9 @@ export class PruneCommand extends Command {
       }
     )
 
-    this.option('--min-families <value>', 'Minimum families to preserve', '20')
+    this.option('-o', '--output <path>', 'Save the result')
+      .option('-f, --format <format>', 'Format (json|ts|minify)', 'ts')
+      .option('--min-families <value>', 'Minimum families to preserve', '20')
       .option('--min-coverage <value>', 'Minimum spectrum coverage % (0-100)', '85')
       .option('--preserve-extremes', 'Preserve extreme hue/saturation/lightness values', true)
       .validate(({ args }) => !args[0] || !args[1]

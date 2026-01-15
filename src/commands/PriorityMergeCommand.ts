@@ -10,7 +10,7 @@ export class PriorityMergeCommand extends Command {
     super(
       'pmerge',
       '<primary> <secondary> [output]',
-      'Слияние датасетов с приоритетами: цвета из primary перекрывают secondary',
+      'Merging datasets with priorities: colors from primary overlap secondary',
       (_args: string[], _options: Record<string, any>, _flags: string[], ctx: CommandContext) =>
         this.perform(ctx.parsedDatasets!, ctx.parseMetadata!, ctx), {
         allowUnknownOptions: false,
@@ -25,13 +25,14 @@ export class PriorityMergeCommand extends Command {
       }
     )
 
-    this.option('-t, --threshold <number>', 'DeltaE порог для дубликатов', '2.3')
-      .option('--format <format>', 'Формат (json|ts)', 'ts')
-      .option('--report', 'Показать подробный отчёт')
-      .option('--save-report <path>', 'Сохранить отчёт')
+    this.option('-o', '--output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('-t, --threshold <number>', 'DeltaE threshold for duplicates', '2.3')
+      .option('--report', 'Show a detailed report')
+      .option('--save-report <path>', 'Save the report')
       .validate(({ args }) => {
         if (!args[0] || !args[1]) {
-          return '❌ Укажите primary и secondary датасеты: pmerge <primary> <secondary> [output]'
+          return '❌ Specify the primary and secondary datasets: pmerge <primary> <secondary> [output]'
         }
         return true
       })
@@ -42,7 +43,7 @@ export class PriorityMergeCommand extends Command {
     _metadata: Record<string, any>,
     { args, options, logger }: CommandContext
   ): Promise<PriorityMergeResult> {
-    logger.info('🔗 Приоритетное слияние датасетов...')
+    logger.info('🔗 Priority dataset merging...')
 
     const primaryColors = datasets[args[0]]
     const secondaryColors = datasets[args[1]]
@@ -50,13 +51,13 @@ export class PriorityMergeCommand extends Command {
     const threshold = parseFloat(options.threshold as string) || 2.3
     const showReport = options.report
 
-    logger.info(`📊 Primary:   ${primaryColors.length} цветов`)
-    logger.info(`📊 Secondary: ${secondaryColors.length} цветов`)
+    logger.info(`📊 Primary:   ${primaryColors.length} colors`)
+    logger.info(`📊 Secondary: ${secondaryColors.length} colors`)
     logger.info(`🎯 DeltaE:    ${threshold}`)
 
     const result = this.merge(primaryColors, secondaryColors, threshold)
 
-    logger.success(`✅ Слияние завершено: ${result.stats.totalUnique} уникальных цветов`)
+    logger.success(`✅ The merge is complete: ${result.stats.totalUnique} unique colors`)
     this.printStats(result.stats, logger)
 
     if (showReport) {
@@ -74,13 +75,13 @@ export class PriorityMergeCommand extends Command {
     secondary: ColorData[],
     deltaEThreshold: number
   ): PriorityMergeResult {
-    // Map для быстрого поиска по HEX в primary
+    // Map for quick HEX search in primary
     const primaryMap = new Map(primary.map(c => [c.hex, c]))
 
-    // 1. Точные совпадения HEX
+    // 1. Exact HEX matches
     const exactMatches = secondary.filter(c => primaryMap.has(c.hex)).map(c => c.hex)
 
-    // 2. Близкие по DeltaE: ищем минимальный DeltaE
+    // 2. Close by DeltaE: looking for the minimum DeltaE
     const closeMatches: string[] = []
     for (const secColor of secondary) {
       if (exactMatches.includes(secColor.hex)) continue
@@ -90,11 +91,11 @@ export class PriorityMergeCommand extends Command {
         const deltaE = this.calculateDeltaE(secColor.rgb, primColor.rgb)
         minDeltaE = Math.min(minDeltaE, deltaE)
 
-        // ОПТИМИЗАЦИЯ: если нашли ОЧЕНЬ близкий, можно выходить
+        // OPTIMIZATION: if finded a very close one, can exit
         if (minDeltaE < 0.5) break
       }
 
-      // Только если минимальный DeltaE < threshold
+      // Only if the minimum DeltaE is < threshold
       if (minDeltaE < deltaEThreshold) {
         closeMatches.push(secColor.hex)
       }
@@ -102,7 +103,7 @@ export class PriorityMergeCommand extends Command {
 
     const skippedHexes = new Set([...exactMatches, ...closeMatches])
 
-    // 3. Добавляем только уникальные из secondary
+    // 3. Adding only unique ones from secondary
     const uniqueFromSecondary = secondary.filter(c => !skippedHexes.has(c.hex))
 
     const merged = [...primary, ...uniqueFromSecondary]
@@ -120,7 +121,9 @@ export class PriorityMergeCommand extends Command {
     return { data: merged, stats }
   }
 
-  /** Простая DeltaE реализация (CIE76) используя rgb из ColorData */
+  /**
+   * Simple DeltaE implementation (CIE76) using rgb from ColorData
+   */
   private calculateDeltaE(rgb1: ColorData['rgb'], rgb2: ColorData['rgb']): number {
     const lab1 = this.rgbToLab(rgb1)
     const lab2 = this.rgbToLab(rgb2)
@@ -134,10 +137,10 @@ export class PriorityMergeCommand extends Command {
   }
 
   private rgbToLab(rgb: ColorData['rgb']): [number, number, number] {
-    // гарантируем, что rgb в [0-1]
+    // guarantee that rgb is in [0-1]
     let [r, g, b] = rgb as [number, number, number]
 
-    // Нормализуем если нужно
+    // Normalize it if necessary
     if (r > 1 || g > 1 || b > 1) {
       r = r / 255
       g = g / 255
@@ -174,24 +177,24 @@ export class PriorityMergeCommand extends Command {
   }
 
   printStats(stats: PriorityMergeStats, logger: any) {
-    logger.info('\n📊 СТАТИСТИКА СЛИЯНИЯ:')
+    logger.info('\n📊 MERGER STATISTICS:')
     logger.info(`Primary:     ${stats.originalPrimary}`)
     logger.info(`Secondary:   ${stats.originalSecondary}`)
-    logger.info(`Уникальных:  ${stats.totalUnique}`)
-    logger.info(`Пропущено:   ${stats.skippedFromSecondary}`)
-    logger.info(`Процент:     ${stats.skipRate}%`)
+    logger.info(`Uniques:     ${stats.totalUnique}`)
+    logger.info(`Skipped:     ${stats.skippedFromSecondary}`)
+    logger.info(`Percent:     ${stats.skipRate}%`)
     logger.info(`DeltaE:      ${stats.deltaEThreshold}`)
   }
 
   private printDetailedReport(result: PriorityMergeResult, _args: string[], logger: any) {
-    logger.info('\n📈 ПЕРВЫЕ 10 ПРИМЕРОВ ПРИОРИТЕТА:')
+    logger.info('\n📈 FIRST 10 PRIORITY EXAMPLES:')
 
     const primaryColors = result.data.filter(c =>
       result.data.findIndex(pc => pc.hex === c.hex) < result.stats.originalPrimary
     )
 
     for (const color of primaryColors.slice(0, 10)) {
-      logger.info(`  ${color.hex}: "${color.name}" (primary приоритет)`)
+      logger.info(`  ${color.hex}: "${color.name}" (primary priority)`)
     }
   }
 
@@ -206,6 +209,6 @@ export class PriorityMergeCommand extends Command {
     }
 
     await writeFile(path, JSON.stringify(report, null, 2), 'utf-8')
-    logger.success(`📄 Отчёт сохранён: ${path}`)
+    logger.success(`📄 Report is saved: ${path}`)
   }
 }

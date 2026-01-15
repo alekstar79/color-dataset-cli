@@ -26,7 +26,7 @@ export class AnalyzeCommand extends Command {
     )
 
     this.option('-o, --output <path>', 'Save to a file')
-      .option('--format <format>', 'Format (json|ts)', 'json')
+      .option('--format <format>', 'Format (json)', 'json')
       .option('--console', 'Show in the console (by default)')
   }
 

@@ -26,7 +26,9 @@ export class HueGenerateCommand extends Command {
       }
     )
 
-    this.option('--saturation <value>', 'Saturation (10-100)', '85')
+    this.option('-o', '--output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts|minify)', 'ts')
+      .option('--saturation <value>', 'Saturation (10-100)', '85')
       .option('--lightness <value>', 'Brightness (10-90)', '50')
       .option('--hue-steps <value>', 'Hue step (1-30)', '3')
       .option('--sat-spread <value>', 'Saturation spread (±)', '15')

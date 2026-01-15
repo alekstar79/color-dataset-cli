@@ -23,7 +23,7 @@ export class NormalizeCommand extends Command {
     )
 
     this.option('-o, --output <path>', 'Save the result')
-      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--format <format>', 'Format (json|ts|minify)', 'ts')
       .option('--normalize, -n', 'Normalize → [0-1] (default)')
       .option('--denormalize, -d', 'Denormalize [0-1] → [0-255/360]')
       .option('--rgb', 'RGB properties only')

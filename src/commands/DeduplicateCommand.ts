@@ -30,7 +30,7 @@ export class DeduplicateCommand extends Command {
     this.deduplicator = new SemanticDeduplicator()
 
     this.option('-o, --output <path>', 'Save the result')
-      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--format <format>', 'Format (json|ts|minify)', 'ts')
       .option('--report', 'Show a detailed report')
       .option('--save-report <path>', 'Save the report')
       .validate(({ args }) => !args[0]

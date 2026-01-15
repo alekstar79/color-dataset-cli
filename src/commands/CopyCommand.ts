@@ -25,7 +25,7 @@ export class CopyCommand extends Command {
     )
 
     this.option('-o', '--output <path>', 'Save the result')
-      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--format <format>', 'Format (json|ts|minify)', 'ts')
       .option('--no-smart', 'Without processing')
       .option('--capitalize-only', 'Only capitalize')
   }

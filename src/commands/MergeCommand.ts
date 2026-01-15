@@ -26,7 +26,8 @@ export class MergeCommand extends Command {
       }
     )
 
-    this.option('-f, --format <format>', 'Format (json|ts)', 'ts')
+    this.option('-o', '--output <path>', 'Save the result')
+      .option('-f, --format <format>', 'Format (json|ts|minify)', 'ts')
       .option('--capitalize', 'Forceful capitalization (default)')
       .option('--dedupe', 'Forceful deduplication (default)')
       .validate(({ args }) => !args[0]
