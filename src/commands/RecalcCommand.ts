@@ -23,16 +23,16 @@ export class RecalcCommand extends Command {
       }
     )
 
-    this.option('-o, --output <path>', 'Сохранить результат')
-      .option('--format <format>', 'Формат (json|ts)', 'ts')
-      .option('--denormalize, -d', 'Денормализовать (normalize -d)')
-      .option('--family, -f', 'Принудительное переопределение семейства')
+    this.option('-o, --output <path>', 'Save the result')
+      .option('--format <format>', 'Format (json|ts)', 'ts')
+      .option('--denormalize, -d', 'Denormalize')
+      .option('--family, -f', 'Forced redefinition of the family')
       .validate(({ args }) => !args[0]
-        ? '❌ Укажите путь к датасету: recalc <dataset> <output>'
+        ? '❌ Specify path to the dataset: recalc <dataset> <output>'
         : true
       )
       .validate(({ args, options }) => !(options.output || options.o || args[1])
-        ? '❌ Укажите путь для сохранения: recalc <dataset> <output>'
+        ? '❌ Specify path to save: recalc <dataset> <output>'
         : true
       )
   }

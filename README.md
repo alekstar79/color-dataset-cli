@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-Color Dataset CLI is a powerful tool for managing, generating, and optimizing color datasets with intelligent algorithms designed to maintain spectral coverage and color family representation. Perfect for design systems, color palette generation, and color space research.
+Color Dataset CLI is a specialized command-line tool for managing, generating, and optimizing color datasets with intelligent algorithms designed to maintain spectral coverage and color family representation. Perfect for design systems, color palette generation, and color space research.
 
 **Key Features:**
 - 🧬 **Smart Generation**: 5-phase structured distribution with 34+ color families
@@ -20,20 +20,6 @@ Color Dataset CLI is a powerful tool for managing, generating, and optimizing co
 - 🔧 **Type-Safe**: Full TypeScript support with comprehensive type definitions
 
 ## 📦 Installation
-
-### Global Installation (Recommended for CLI usage)
-
-```bash
-npm install -g color-dataset-cli
-color-dataset --help
-```
-
-### Local Installation
-
-```bash
-npm install color-dataset-cli
-npx color-dataset --help
-```
 
 ### From Source
 
@@ -64,6 +50,213 @@ This CLI provides specialized commands for working with datasets:
 - `recalc` – recalculate derived fields (HSL/OKLab/etc.) for an existing dataset.
 - `smart-generate` – generation of an intelligent dataset with optimal coverage of families
 - `sort` – sort a dataset by configurable criteria (hue, lightness, name, etc.).
+
+### Syntax
+
+`analyze`
+
+Options:
+```text
+-o, --output <path>: Output analysis file (json)  
+--console: Show detailed analysis in console (default)  
+```
+
+Example:
+```bash
+cli analyze colors.ts
+```
+
+Output includes:
+   
+- Total color count
+- Color family distribution
+- Hue coverage analysis
+- RGB/HSL value ranges
+- Duplicate detection
+
+`capitalize`
+
+Options:
+```
+-o, --output <path>: Output dataset file  
+--format <format>: Output format (ts|js|json) ts by default  
+--smart: Smart capitalize (dash-case → spaces)  
+--strict Only Title Case without dash  
+```
+
+Example:
+```bash
+cli capitalize colors.ts colors-capitalized.ts
+```
+
+`copy`
+
+Options:
+```
+-o, --output <path>: Output dataset file  
+--no-smart: Disable smart processing  
+--capitalize-only: Only capitalize  
+```
+
+Example:
+```bash
+cli copy colors.ts subset.js --capitalize-only
+```
+
+`deduplicate`
+
+Options:  
+```
+-o, --output <path>: Output deduplicated dataset  
+--report: Show a detailed report  
+--save-report <path>: Save the report  
+```
+
+Example:
+```bash
+cli deduplicate colors.js --report
+```
+
+`hue-generate`
+
+Options:
+```
+-o, --output <path>: Output dataset file
+--saturation <value>: Saturation (10-100) 85 by default
+--lightness <value>: Brightness (10-90) 50 by default
+--hue-steps <value>: Hue step (1-30) 3 by default
+--sat-spread <value>: Saturation spread (±) 15
+--light-spread <value>: Brightness spread (±) 20
+```
+
+Example:
+```bash
+cli hue-generate spectrum.js 1200 --saturation=80 --lightness=60
+```
+
+`merge`
+
+Options:
+```
+-o, --output <path>: Output merged dataset
+--capitalize: Forceful capitalization (default)
+--dedupe: Forceful deduplication (default)
+```
+
+Example:
+```bash
+cli merge -o all-colors.js blues.js greens.js reds.js
+```
+
+`normalize`
+
+Options:
+```
+-o, --output <path>: Output normalized dataset
+--format <format>: Format (json|ts) ts by default
+--normalize, -n Normalize → [0-1] (default)
+--denormalize, -d Denormalize [0-1] → [0-255/360]
+--rgb RGB properties only
+--hsl HSL properties only
+--all All properties (default)
+```
+
+Example:
+```bash
+cli normalize raw-colors.js normalized.js --rgb-normalize
+```
+
+`normalize-name`
+
+Options:
+```
+-o, --output <path>: Output dataset with normalized names
+--format <format>: Format (json|ts) ts by default
+--report: Detailed report
+--dry-run: Analysis only
+--smart: Smart capitalize true by default
+--no-smart: Disable smart capitalize
+```
+
+Example:
+```bash
+cli normalize-name colors.js colors-normalized.ts --smart false
+```
+
+`priority-merge`
+
+Options:
+```
+-o, --output <path>: Output merged dataset
+--priority <paths...>: Dataset files in priority order (highest first)
+--rules <path>: Priority rules configuration
+--conflict <strategy>: Conflict resolution strategy (keep-highest, blend, reject)
+```
+
+Example:
+```bash
+cli priority-merge --priority brand.js base.js -o final.js
+```
+
+`prune`
+
+Options:
+```
+-o, --output <path>: Output pruned dataset
+--min-families <value>: Minimum families to preserve (20 by default)
+--min-coverage <value>: Minimum spectrum coverage % (0-100) 85 by default
+--preserve-extremes: Preserve extreme hue/saturation/lightness values (true by default)
+```
+
+Example:
+```bash
+cli prune large-dataset.js pruned-dataset.ts 2000
+```
+
+`recalc`
+
+Options:
+```
+-o, --output <path>: Output recalculated dataset
+--format <format>: Формат (json|ts) ts by default
+--denormalize, -d: Денормализовать
+--family: Forced redefinition of the family
+```
+
+Example:
+```bash
+cli recalc colors.js updated.js --family
+```
+
+`smart-generate`
+
+Options:
+```
+-o, --output <path>: Output dataset file
+--phases <value>: Number of generation phases (1-5) 3 default
+--tolerance <value>: Balancing tolerance % (10-50) 30 default
+```
+
+Example:
+```bash
+cli smart-generate smart-palette.js 1000 --phases 5
+```
+
+`sort`
+
+Options:
+```
+-o, --output <path>: Output sorted dataset
+--format <format>', 'Format (json|ts)', ts
+--by <field>: Sorting field: name|hex|hue (hex by default)
+--reverse, -r: Reverse order
+--stable: Stable sorting (default)
+```
+
+Example:
+```bash
+cli sort colors.js sorted.js --by hue
+```
 
 ---
 

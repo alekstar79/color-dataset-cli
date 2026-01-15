@@ -28,7 +28,7 @@ export class SortCommand extends Command {
 
     this.option('-o, --output <path>', 'Save the result')
       .option('--format <format>', 'Format (json|ts)', 'ts')
-      .option('--by <field>', 'Sorting field: name|hex|hue', 'name')
+      .option('--by <field>', 'Sorting field: name|hex|hue', 'hex')
       .option('--reverse, -r', 'Reverse order')
       .option('--stable', 'Stable sorting (default)')
       .validate(({ args }) => !args[0]
