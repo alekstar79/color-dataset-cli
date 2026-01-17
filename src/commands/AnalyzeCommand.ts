@@ -1,10 +1,16 @@
 import { AnalyzeResult, ColorData, CommandContext, DatasetStats, Distributions, Metadata, Patterns, TopStats } from '@/types'
 
-import { ProgressBar } from '@/utils/ProgressBar'
 import { Command } from '@/core/Command'
+import { ProgressBar } from '@/utils/ProgressBar'
+import { Logger } from '@/utils/Logger'
 
 import { buildPath } from '@/utils/paths'
 import { writeFile } from 'fs/promises'
+
+const NAME_LENGTH_BUCKET_SIZE = 5
+const TOP_LIST_SIZE = 5
+const MOST_COMMON_WORDS_SIZE = 10
+const PROGRESS_BAR_WIDTH = 40
 
 export class AnalyzeCommand extends Command {
   constructor() {
@@ -38,38 +44,55 @@ export class AnalyzeCommand extends Command {
     logger.info('🔬 Starting a full dataset analysis...')
 
     const outputPath = options.output || options.o || args[1]
-    const showConsole = options.console !== false && !outputPath
+    const showConsole = options.console ?? true
 
     let result: Record<string, AnalyzeResult> = {}
     for (const [path, data] of Object.entries(datasets)) {
-      result[path] = this.analyze(data, logger)
+      try {
+        result[path] = this.analyze(data, logger)
 
-      // MODE 1: Console
-      if (showConsole) {
-        this.printReport(path, result[path], logger)
-      }
+        // MODE 1: Console
+        if (showConsole) {
+          this.printReport(path, result[path], logger)
+        }
 
-      // MODE 2: Save
-      if (outputPath) {
-        await writeFile(buildPath(path, outputPath), JSON.stringify(result[path], null, 2), 'utf-8')
-        logger.success(`📄 Report is saved: ${outputPath}`)
+        // MODE 2: Save
+        if (outputPath) {
+          const safeOutputPath = this.validateOutputPath(outputPath)
+          await writeFile(buildPath(path, safeOutputPath), JSON.stringify(result[path], null, 2), 'utf-8')
+          logger.success(`📄 Report is saved: ${safeOutputPath}`)
+        }
+      } catch (error) {
+        logger.error(`Error processing dataset ${path}: ${error}`)
+        throw error
       }
     }
 
     return result
   }
 
-  analyze(data: ColorData[], _logger: any): AnalyzeResult {
-    const progress = new ProgressBar({ total: data.length, width: 40 })
+  analyze(data: ColorData[], logger: Logger): AnalyzeResult {
+    const progress = new ProgressBar({ total: data.length, width: PROGRESS_BAR_WIDTH })
     const stats: DatasetStats = {
       nameLength: { avg: 0, min: Infinity, max: 0 },
       hexUsage: { '3-digit': 0, '6-digit': 0 },
       nameWords: { avgWords: 0, avgWordLength: 0 }
     }
 
-    const top: TopStats = { longestNames: [], shortestNames: [], mostCommonWords: [] }
+    const top: TopStats = {
+      longestNames: [],
+      shortestNames: [],
+      mostCommonWords: []
+    }
+
     const distributions: Distributions = { nameLengthBuckets: {}, hexGroups: {} }
-    const patterns: Patterns = { hasNumbers: 0, hasSpecialChars: 0, camelCase: 0, allLower: 0, allUpper: 0 }
+    const patterns: Patterns = {
+      hasNumbers: 0,
+      hasSpecialChars: 0,
+      camelCase: 0,
+      allLower: 0,
+      allUpper: 0
+    }
 
     const hexSet = new Set<string>()
     const nameSet = new Set<string>()
@@ -82,8 +105,20 @@ export class AnalyzeCommand extends Command {
     const wordCount: Record<string, number> = {}
     let validCount = 0
 
+    // Optimized arrays for top values
+    const allLongNames: Array<{name: string, length: number}> = []
+    const allShortNames: Array<{name: string, length: number}> = []
+    let totalWordLength = 0
+    let totalWordCount = 0
+
     for (const color of data) {
       progress.update(1)
+
+      // Validation of input data
+      if (!color.name || !color.hex) {
+        logger.warn(`Skipping invalid color data: ${JSON.stringify(color)}`)
+        continue
+      }
 
       // Statistics of doubles
       const hexKey = color.hex?.toLowerCase()
@@ -114,6 +149,10 @@ export class AnalyzeCommand extends Command {
       stats.nameLength.max = Math.max(stats.nameLength.max, nameLen)
       stats.nameLength.avg += nameLen
 
+      // Data collection for top values (optimized approach)
+      allLongNames.push({name: color.name, length: nameLen})
+      allShortNames.push({name: color.name, length: nameLen})
+
       // HEX statistics
       if (color.hex.length === 4) stats.hexUsage['3-digit']++
       else if (color.hex.length === 7) stats.hexUsage['6-digit']++
@@ -121,23 +160,15 @@ export class AnalyzeCommand extends Command {
       // Words in the name
       const words = color.name.toLowerCase().split(/\s+/)
       stats.nameWords.avgWords += words.length
+      totalWordCount += words.length
+
       words.forEach(word => {
-        stats.nameWords.avgWordLength += word.length / words.length
+        totalWordLength += word.length
         wordCount[word] = (wordCount[word] || 0) + 1
       })
 
-      // Tops
-      if (nameLen > (top.longestNames[0]?.length || 0)) {
-        top.longestNames.unshift(color.name)
-        top.longestNames.splice(5)
-      }
-      if (nameLen < (top.shortestNames[0]?.length || Infinity)) {
-        top.shortestNames.unshift(color.name)
-        top.shortestNames.splice(5)
-      }
-
       // Distributions
-      const bucket = Math.floor(nameLen / 5) * 5 + '-'
+      const bucket = `${Math.floor(nameLen / NAME_LENGTH_BUCKET_SIZE) * NAME_LENGTH_BUCKET_SIZE}+`
       distributions.nameLengthBuckets[bucket] = (distributions.nameLengthBuckets[bucket] || 0) + 1
       distributions.hexGroups[color.hex.slice(1, 3)] = (distributions.hexGroups[color.hex.slice(1, 3)] || 0) + 1
 
@@ -151,18 +182,26 @@ export class AnalyzeCommand extends Command {
 
     progress.processing()
 
-    // Final calculations
-    stats.nameLength.avg /= data.length
-    stats.nameWords.avgWords /= data.length
-    stats.nameWords.avgWordLength /= data.length
+    // Optimized calculation of top values
+    top.longestNames = allLongNames
+      .sort((a, b) => b.length - a.length)
+      .slice(0, TOP_LIST_SIZE)
+      .map(item => item.name)
+
+    top.shortestNames = allShortNames
+      .sort((a, b) => a.length - b.length)
+      .slice(0, TOP_LIST_SIZE)
+      .map(item => item.name)
 
     top.mostCommonWords = Object.entries(wordCount)
       .sort(([,a], [,b]) => b - a)
-      .slice(0, 10)
+      .slice(0, MOST_COMMON_WORDS_SIZE)
       .map(([word]) => word)
 
-    top.longestNames = top.longestNames.slice(0, 5)
-    top.shortestNames = top.shortestNames.slice(0, 5)
+    // Final calculations
+    stats.nameLength.avg /= data.length
+    stats.nameWords.avgWords /= data.length
+    stats.nameWords.avgWordLength = totalWordCount > 0 ? totalWordLength / totalWordCount : 0
 
     return {
       total: data.length,
@@ -183,7 +222,14 @@ export class AnalyzeCommand extends Command {
     }
   }
 
-  printReport(dataset: string, result: AnalyzeResult, logger: any) {
+  private validateOutputPath(path: string): string {
+    if (path.includes('..') || path.includes('//') || path.startsWith('/')) {
+      throw new Error(`Potentially unsafe output path: ${path}`)
+    }
+    return path
+  }
+
+  printReport(dataset: string, result: AnalyzeResult, logger: Logger) {
     logger.success(`📊 DATASET ANALYSIS ${dataset}`)
     logger.info(`Total colors: ${result.total} of ${result.families} families`)
     logger.info(`✅ Valid: ${result.valid} (${((result.valid/result.total) * 100).toFixed(1)}%)`)
